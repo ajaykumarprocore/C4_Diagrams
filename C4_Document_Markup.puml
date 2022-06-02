@@ -1,0 +1,43 @@
+@startuml C4_Elements
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+title System context diagram for Unified Document Viewer (Document Markup tool)
+
+AddElementTag("submital_flow", $fontColor="orange")
+
+AddRelTag("submital_flow", $textColor="orange", $lineColor="orange")
+
+LAYOUT_LANDSCAPE()
+Person(DocController, "PreConstruction User", "Document Controller (CDM user) or a step assignee in a Workflow step")
+Person(ProcoreUser, "Course of Construction User", "Project Manager/Architect/Engineer", $tags="submital_flow")
+Person(BallInCourtUser, "Sumbittal Ball In Court User", "Course of construction user", $tags="submital_flow")
+
+System(DV_FE, "Unified Document Viewer", "A set of javascript files that gives users an ability to view all kinds of construction documents in Procore WebApp. Gives users an ability to markup pdf documents, download with markup, add cover pages & stamps.") 
+System(DV_BE, "Document Viewer Service", "Provide APIs and backend support for Unified Document Viewer use cases such as storing markups in DB, orchestrating download with markup, add cover pages etc.") 
+System(DV_SBE, "Monolith Submitals module", "Provide APIs, and backend support for use cases that relates to submittal attachments such as storing markups in DB, orchestrating download with markup, add cover pages etc.", $tags="submital_flow") 
+System_Ext(DV_SBF, "Monolith Submitals module", "Provide access to server side rendered submittal list views for submittals including attachments", $tags="submital_flow") 
+System_Ext(DV_FE_N, "Native web client side JS libraries", "A set of web native client side JS libraries - pdf.js for displaying pdf, html tags audio/video for media object rendering, etc.") 
+System_Ext(DV_FE_OD, "Office 365/ WOPI integration", "A light weight service that provides ODrive URLs that connects users to their Office 365(cloud) accounts") 
+
+System_Ext(CDM, "CDM Microfrontend", "Organize, access, and collaborate on project documents") 
+System_Ext(DP, "VectorProcessing", "A service which is responsible for generating pdf documents asynchronously") 
+System_Ext(GS, "Monolith Global Search module", "Index documents, facilitate searching for text in documents", $tags="submital_flow") 
+System_Ext(DP_IP, "ImageProcessing", "A service which is responsible for doing a bunch of time consuming tasks for documents and drawings in the background") 
+System_Ext(CDM, "CDM Microfrontend", "Organize, access, and collaborate on project documents") 
+System_Ext(CDM_BE, "Document Service (CDM Backend)", "Provide APIs and backend support for CDM") 
+
+Rel(DV_FE, DV_BE, "Makes API calls to create, update or delete Markup elements stored in a database")
+Rel(DV_FE, DV_SBE, "Makes API calls to create, update or delete Markup elements stored in a database", $tags="submital_flow")
+
+Rel(CDM, DV_FE , "Launches")
+Rel(DocController, CDM , "User selects a document in CDM and clicks on the view icon on the selected item")
+Rel(ProcoreUser, DV_SBF , "The user selects a submittal from the submittals list and clicks on the view icon on the document attached to the selection", $tags="submital_flow")
+Rel(DV_SBF, DV_FE , "Launches", $tags="submital_flow")
+Rel(DV_SBE, DP , "Uses vector processing for downloading, generating pdf with markups & uploading to S3", $tags="submital_flow")
+Rel(DV_FE, GS , "Calls GlobalSearch for allowing users to search contents with in the documents", $tags="submital_flow")
+Rel(DV_SBE, DP_IP , "Uses image processing to convert pdfs into html", $tags="submital_flow")
+Rel_D(DV_FE, DV_FE_N , "Uses a set of native client side js libraries to render documents")
+Rel_U(DV_FE, DV_FE_OD , "Uses to generate a redirect url to Office 365")
+Rel(DV_BE, CDM_BE , "Uses for fetching permissions on the documents and listing markup indicators on CDM presentation layer")
+
+Rel(BallInCourtUser, DV_FE, "Launches by clicking on the documents link received by the user via the email", $tags="submital_flow")
+@enduml
